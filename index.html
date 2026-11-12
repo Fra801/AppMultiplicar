@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2457E6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Multiplicar">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Multiplicar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una columna de 720px. Arriba el encabezado con contadores, pestañas, y debajo la tarjeta con la cuenta, la respuesta y el truco. */
+:root {
+  --bg: #F3F4F8;
+  --surface: #FFFFFF;
+  --surface-2: #EDEFF5;
+  --fg: #12151C;
+  --muted: #5A6174;
+  --line: #DADDE6;
+  --accent: #2457E6;
+  --accent-fg: #FFFFFF;
+  --n1-bg: #DDF3E4; --n1-fg: #1D6A39;
+  --n2-bg: #DCE8FB; --n2-fg: #1D4F9C;
+  --n3-bg: #FBEBCB; --n3-fg: #86570A;
+  --n4-bg: #EADFFB; --n4-fg: #5B2FA6;
+  --n5-bg: #D6F0EE; --n5-fg: #0F6B67;
+  --again-bg: #FBE1DE; --again-fg: #A12A1E;
+  --good-bg: #DDF3E4; --good-fg: #1D6A39;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F121A; --surface: #171B26; --surface-2: #1F2433; --fg: #E8EBF3; --muted: #9AA2B5; --line: #2A3042;
+    --accent: #7195FF; --accent-fg: #0B1020;
+    --n1-bg: #16301F; --n1-fg: #84D69C;
+    --n2-bg: #16284A; --n2-fg: #92B7FF;
+    --n3-bg: #3A2B0B; --n3-fg: #F2C66E;
+    --n4-bg: #2A1B4A; --n4-fg: #C4A6FF;
+    --n5-bg: #0F3433; --n5-fg: #7FD9D3;
+    --again-bg: #3C1A17; --again-fg: #FF9E92;
+    --good-bg: #16301F; --good-fg: #84D69C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F121A; --surface: #171B26; --surface-2: #1F2433; --fg: #E8EBF3; --muted: #9AA2B5; --line: #2A3042;
+  --accent: #7195FF; --accent-fg: #0B1020;
+  --n1-bg: #16301F; --n1-fg: #84D69C;
+  --n2-bg: #16284A; --n2-fg: #92B7FF;
+  --n3-bg: #3A2B0B; --n3-fg: #F2C66E;
+  --n4-bg: #2A1B4A; --n4-fg: #C4A6FF;
+  --n5-bg: #0F3433; --n5-fg: #7FD9D3;
+  --again-bg: #3C1A17; --again-fg: #FF9E92;
+  --good-bg: #16301F; --good-fg: #84D69C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+button, textarea, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.brand small { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--muted); }
+.counts { display: flex; gap: 14px; font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; }
+.counts span { display: inline-flex; gap: 5px; align-items: baseline; color: var(--muted); font-weight: 500; }
+.counts b { font-size: 17px; }
+.counts .c-ok b { color: var(--good-fg); }
+.counts .c-n b { color: var(--n2-fg); }
+.counts .c-st b { color: var(--n3-fg); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; margin-bottom: -1px; color: var(--muted); font-weight: 600; }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips .lbl { color: var(--muted); font-size: 13px; margin-right: 4px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pill { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.pill.n1 { background: var(--n1-bg); color: var(--n1-fg); }
+.pill.n2 { background: var(--n2-bg); color: var(--n2-fg); }
+.pill.n3 { background: var(--n3-bg); color: var(--n3-fg); }
+.pill.n4 { background: var(--n4-bg); color: var(--n4-fg); }
+.pill.n5 { background: var(--n5-bg); color: var(--n5-fg); }
+.num { color: var(--muted); font-size: 13px; font-family: var(--font-mono); }
+.q { font-family: var(--font-display); font-weight: 700; font-size: 44px; line-height: 1.1; letter-spacing: -0.02em; margin: 0; text-align: center; font-variant-numeric: tabular-nums; }
+.lbl2 { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+input.ans { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; text-align: center; font-family: var(--font-mono); font-size: 26px; font-variant-numeric: tabular-nums; }
+input.ans::placeholder { color: var(--muted); font-size: 18px; font-family: var(--font-body); }
+.err2 { color: var(--again-fg); font-size: 14px; margin: 0; text-align: center; }
+.res { border-radius: 12px; padding: 12px 14px; font-weight: 600; text-align: center; font-size: 17px; }
+.res.ok { background: var(--good-bg); color: var(--good-fg); }
+.res.bad { background: var(--again-bg); color: var(--again-fg); }
+.exp { margin: 0; overflow-wrap: anywhere; }
+.trick { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-family: var(--font-mono); font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
+
+.btn-main { width: 100%; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 10px; padding: 13px 16px; font-weight: 600; font-size: 16px; }
+.btn-ghost { background: none; border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; color: var(--fg); font-weight: 500; }
+.btn-danger { background: var(--again-bg); color: var(--again-fg); border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 600; }
+.btn-ghost.sm { padding: 6px 12px; font-size: 14px; }
+.hint { color: var(--muted); font-size: 13px; text-align: center; margin: 0; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.panel h3 { font-family: var(--font-display); font-size: 18px; margin: 0; }
+.bars { display: flex; align-items: flex-end; gap: 4px; height: 110px; }
+.bar { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 3px; }
+.bar .col { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 2px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+.bar .col i { display: block; background: var(--good-fg); width: 100%; }
+.bar .v { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1; }
+.axis { display: flex; gap: 4px; }
+.axis span { flex: 1; min-width: 0; text-align: center; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.axis span.today { color: var(--fg); font-weight: 700; }
+.list { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 4.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row .meter { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.row .meter i { display: block; height: 100%; background: var(--good-fg); }
+.row .st { font-size: 13px; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sync { color: var(--muted); font-size: 13px; margin: 0; }
+.acct { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.acct.on { color: var(--good-fg); border-color: var(--good-fg); }
+.acct-row { display: flex; gap: 8px; }
+.acct-row input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.panel ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
+.panel a { color: var(--accent); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 380px) { .q { font-size: 36px; } }
+@media (prefers-reduced-motion: no-preference) { .card { animation: in .18s ease-out; } @keyframes in { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Tipos de ejercicio ---------- */
+  var MULTS = [5, 25, 11, 99, 15, 21];          // multiplicadores (el 125 se quitó)
+  var MODES = [["mix", "Mixto"], ["mult", "Multiplicadores"], ["dec", "Decenas iguales"]];
+  var DAY = 86400000, MIN = 60000;
+
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function dayNum(ts) { return Math.floor((ts - new Date(ts).getTimezoneOffset() * MIN) / DAY); }
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function pick(x) { return x[rnd(0, x.length - 1)]; }
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function truco(a, m) {
+    if (m === 5) return a + " × 10 = " + a * 10 + ", y la mitad: " + a * 5;
+    if (m === 25) return a + " × 100 = " + a * 100 + ", dividido 4: " + a * 25;
+    if (m === 11) return a + " × 10 + " + a + " = " + a * 10 + " + " + a + " = " + a * 11;
+    if (m === 99) return a + " × 100 = " + a * 100 + ", menos " + a + " = " + a * 99;
+    if (m === 15) return a + " × 10 = " + a * 10 + ", más su mitad (" + a * 5 + ") = " + a * 15;
+    return a + " × 20 = " + a * 20 + ", más " + a + " = " + a * 21;
+  }
+  function nueva(mode, mulFilter) {
+    var t = mode === "mix" ? pick(["mult", "dec"]) : mode;
+    if (t === "mult") {
+      var a = rnd(10, 99), m = mulFilter ? mulFilter : pick(MULTS);
+      var flip = Math.random() < 0.5;
+      return { kind: "mult", key: "x" + m, txt: flip ? m + " × " + a : a + " × " + m, res: a * m, tipo: "Por " + m, tr: truco(a, m) };
+    }
+    var d = rnd(1, 9), u = rnd(1, 9), v = 10 - u;
+    var p = 10 * d + u, q = 10 * d + v;
+    return { kind: "dec", key: "dec", txt: p + " × " + q, res: p * q, tipo: "Decenas iguales, unidades suman 10",
+      tr: d + " × " + (d + 1) + " = " + d * (d + 1) + " y " + u + " × " + v + " = " + pad(u * v) + ". Se pegan: " + d * (d + 1) + pad(u * v) };
+  }
+
+  /* ---------- Estado y guardado ---------- */
+  var LS = "multiplicar:v1";
+  function fresh() { return { log: {}, by: {}, best: 0, cfg: { mode: "mix", mul: 0 }, savedAt: 0 }; }
+  function norm(r) { var o = Object.assign(fresh(), r || {}); o.cfg = Object.assign({ mode: "mix", mul: 0 }, o.cfg); return o; }
+  var S = fresh();
+  try { var raw = localStorage.getItem(LS); if (raw) S = norm(JSON.parse(raw)); } catch (err) {}
+
+  /* ---------- Sesión con GitHub (gist privado) ---------- */
+  var GK = "multiplicar:gh", GIST_DESC = "Multiplicar - progreso", GIST_FILE = "multiplicar.json";
+  var gh = { token: "", user: "", gist: "" };
+  try { var gr = localStorage.getItem(GK); if (gr) gh = Object.assign(gh, JSON.parse(gr)); } catch (err) {}
+  var syncMsg = "", ghErr = "", ghBusy = false, wtimer = null, writing = false, pending = false;
+  function ghSave() { try { localStorage.setItem(GK, JSON.stringify(gh)); } catch (err) {} }
+  function api(path, method, body) {
+    var hd = { "Authorization": "Bearer " + gh.token, "Accept": "application/vnd.github+json" };
+    if (body) hd["Content-Type"] = "application/json";
+    return fetch("https://api.github.com" + path, { method: method || "GET", headers: hd, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { if (!r.ok) { var e = new Error("http " + r.status); e.status = r.status; throw e; } return r.json(); });
+  }
+  function failMsg(err) {
+    return err && err.status === 401 ? "GitHub ya no acepta el token. Volvé a conectar la cuenta." : "No se pudo sincronizar. Tu progreso sigue guardado en este navegador.";
+  }
+  function note() { var n = document.getElementById("syncnote"); if (n) n.textContent = syncMsg; }
+  function save() {
+    S.savedAt = Date.now();
+    try { localStorage.setItem(LS, JSON.stringify(S)); } catch (err) {}
+    if (gh.token && gh.gist) { clearTimeout(wtimer); wtimer = setTimeout(push, 1500); }
+  }
+  async function push() {
+    if (writing) { pending = true; return; }
+    writing = true;
+    try {
+      var files = {}; files[GIST_FILE] = { content: JSON.stringify(S) };
+      await api("/gists/" + gh.gist, "PATCH", { files: files });
+      syncMsg = "Guardado en tu cuenta de GitHub.";
+    } catch (err) { syncMsg = failMsg(err); }
+    writing = false; note();
+    if (pending) { pending = false; push(); }
+  }
+  async function pull() {
+    var g = await api("/gists/" + gh.gist);
+    var f = g.files && g.files[GIST_FILE];
+    if (!f || !f.content) { push(); return; }
+    var remote = norm(JSON.parse(f.content));
+    if ((remote.savedAt || 0) > (S.savedAt || 0)) {
+      S = remote;
+      try { localStorage.setItem(LS, JSON.stringify(S)); } catch (err) {}
+      cur = null; answered = false;
+    } else if ((S.savedAt || 0) > (remote.savedAt || 0)) { push(); }
+  }
+  async function connect(token) {
+    token = (token || "").trim();
+    if (!token) { ghErr = "Pegá el token que creaste en GitHub."; render(); return; }
+    ghErr = ""; ghBusy = true; render();
+    try {
+      gh = { token: token, user: "", gist: "" };
+      var me = await api("/user");
+      gh.user = me.login;
+      var found = null;
+      for (var page = 1; page <= 3 && !found; page++) {
+        var list = await api("/gists?per_page=100&page=" + page);
+        found = list.filter(function (g) { return g.description === GIST_DESC && g.files && g.files[GIST_FILE]; })[0];
+        if (list.length < 100) break;
+      }
+      if (found) { gh.gist = found.id; await pull(); }
+      else {
+        var files = {}; files[GIST_FILE] = { content: JSON.stringify(S) };
+        var g = await api("/gists", "POST", { description: GIST_DESC, public: false, files: files });
+        gh.gist = g.id;
+      }
+      ghSave();
+      syncMsg = "Conectado como " + gh.user + ". Tu progreso se guarda en tu cuenta.";
+    } catch (err) {
+      gh = { token: "", user: "", gist: "" }; ghSave();
+      ghErr = err.status === 401 ? "GitHub no aceptó el token. Revisá que lo hayas copiado completo."
+        : err.status === 403 || err.status === 404 ? "El token no tiene permiso para gists. Creá uno nuevo con el permiso gist marcado."
+        : "No se pudo conectar con GitHub. Probá de nuevo en un momento.";
+    }
+    ghBusy = false; render();
+  }
+  function disconnect() { gh = { token: "", user: "", gist: "" }; ghSave(); syncMsg = ""; ghErr = ""; render(); }
+  async function startupPull() {
+    if (!gh.token || !gh.gist) return;
+    try { await pull(); syncMsg = "Conectado como " + gh.user + ". Tu progreso se guarda en tu cuenta."; render(); }
+    catch (err) { syncMsg = failMsg(err); note(); }
+  }
+  function exportJson() {
+    var blob = new Blob([JSON.stringify(S, null, 1)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "multiplicar-progreso.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function importJson(file) {
+    var r = new FileReader();
+    r.onload = function () {
+      try { S = norm(JSON.parse(r.result)); save(); cur = null; answered = false; ghErr = ""; syncMsg = "Progreso importado."; }
+      catch (err) { ghErr = "Ese archivo no es una copia de seguridad válida."; }
+      render();
+    };
+    r.readAsText(file);
+  }
+
+  /* ---------- Práctica ---------- */
+  var tab = "study", cur = null, answered = false, lastRes = null, formErr = "", confirmReset = false, streak = 0;
+  var app = document.getElementById("app");
+
+  function today() { return dayNum(Date.now()); }
+  function todayLog() { return S.log[today()] || { n: 0, ok: 0 }; }
+
+  function submit(val) {
+    var v = String(val).trim();
+    if (!/^\d+$/.test(v)) { formErr = "Ingresá un número entero."; render(); return; }
+    formErr = "";
+    var n = parseInt(v, 10), ok = n === cur.res, t = today();
+    var L = S.log[t] || (S.log[t] = { n: 0, ok: 0 });
+    L.n++; if (ok) L.ok++;
+    var B = S.by[cur.key] || (S.by[cur.key] = { n: 0, ok: 0 });
+    B.n++; if (ok) B.ok++;
+    if (ok) { streak++; if (streak > S.best) S.best = streak; } else streak = 0;
+    lastRes = { ok: ok, given: n };
+    answered = true;
+    save(); render();
+  }
+  function nextQ() { cur = nueva(S.cfg.mode, S.cfg.mul); answered = false; lastRes = null; formErr = ""; render(); }
+
+  /* ---------- Vistas ---------- */
+  function head() {
+    var L = todayLog();
+    return '<header class="top"><h1 class="brand">Multiplicar <small>cálculo mental</small></h1>' +
+      '<button class="acct' + (gh.token ? " on" : "") + '" data-tab="stats">' + (gh.token ? "● " + esc(gh.user) : "Iniciar sesión") + "</button>" +
+      '<div class="counts" aria-label="Resumen de hoy">' +
+      '<span class="c-n"><b>' + L.n + "</b> hoy</span>" +
+      '<span class="c-ok"><b>' + L.ok + "</b> bien</span>" +
+      '<span class="c-st"><b>' + streak + "</b> racha</span></div></header>" +
+      '<nav class="tabs" role="tablist">' +
+      [["study", "Practicar"], ["stats", "Progreso"]].map(function (t) {
+        return '<button class="tab" role="tab" data-tab="' + t[0] + '" aria-selected="' + (tab === t[0]) + '">' + t[1] + "</button>";
+      }).join("") + "</nav>";
+  }
+  function chips() {
+    var html = '<div class="chips"><span class="lbl">Tipo</span>' +
+      MODES.map(function (x) { return '<button class="chip" data-act="mode" data-v="' + x[0] + '" aria-pressed="' + (S.cfg.mode === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+    if (S.cfg.mode === "mult") {
+      html += '<div class="chips"><span class="lbl">Por</span><button class="chip" data-act="mul" data-v="0" aria-pressed="' + (!S.cfg.mul) + '">Todos</button>' +
+        MULTS.map(function (m) { return '<button class="chip" data-act="mul" data-v="' + m + '" aria-pressed="' + (S.cfg.mul === m) + '">' + m + "</button>"; }).join("") + "</div>";
+    }
+    return html;
+  }
+  function viewStudy() {
+    if (!cur) cur = nueva(S.cfg.mode, S.cfg.mul);
+    var html = head() + chips() + '<section class="card">' +
+      '<div class="meta"><span class="pill ' + (cur.kind === "dec" ? "n4" : "n2") + '">' + esc(cur.tipo) + "</span></div>" +
+      '<h2 class="q">' + esc(cur.txt) + "</h2>";
+    if (!answered) {
+      html += '<div><input class="ans" id="ans" type="text" inputmode="numeric" autocomplete="off" placeholder="Tu respuesta" aria-label="Tu respuesta"></div>' +
+        (formErr ? '<p class="err2">' + esc(formErr) + "</p>" : "") +
+        '<button class="btn-main" data-act="check">Comprobar</button><p class="hint">Atajo: Enter</p>';
+    } else {
+      html += '<hr class="sep">' +
+        '<div class="res ' + (lastRes.ok ? "ok" : "bad") + '">' + (lastRes.ok ? "Correcto: " + esc(cur.txt) + " = " + cur.res : "Era " + cur.res + ". Tu respuesta: " + lastRes.given) + "</div>" +
+        '<div><p class="lbl2">Truco</p><div class="trick">' + esc(cur.tr) + "</div></div>" +
+        '<button class="btn-main" data-act="next">Siguiente</button><p class="hint">Atajo: Enter</p>';
+    }
+    return html + "</section>";
+  }
+
+  function bars(vals, oks, labels, todayIdx) {
+    var max = Math.max.apply(null, vals.concat([1]));
+    return '<div class="bars">' + vals.map(function (v, i) {
+      var h = v ? Math.max(4, Math.round(v / max * 84)) : 0;
+      var okh = oks && v ? Math.round(oks[i] / v * 100) : 0;
+      return '<div class="bar" title="' + v + '"><span class="v">' + (v || "") + '</span><div class="col" style="height:' + h + 'px">' + (oks ? '<i style="height:' + okh + '%"></i>' : "") + "</div></div>";
+    }).join("") + '</div><div class="axis">' + labels.map(function (l, i) { return '<span class="' + (i === todayIdx ? "today" : "") + '">' + l + "</span>"; }).join("") + "</div>";
+  }
+  function accountPanel() {
+    var html = '<section class="panel"><h3>Cuenta y copia de seguridad</h3>';
+    if (gh.token) {
+      html += "<p style=\"margin:0\">Sesión iniciada como <b>" + esc(gh.user) + "</b>. Tu progreso se guarda en un gist privado de tu cuenta de GitHub, así lo ves igual en el celular y en la compu.</p>" +
+        '<div class="btns"><button class="btn-ghost sm" data-act="gh-out">Cerrar sesión</button></div>';
+    } else {
+      html += "<p style=\"margin:0\">Iniciá sesión con GitHub para guardar el progreso en tu cuenta y usarlo en cualquier dispositivo.</p><ol>" +
+        '<li><a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Multiplicar" target="_blank" rel="noopener">Creá un token</a> en GitHub con el permiso <b>gist</b> marcado.</li>' +
+        "<li>Copialo y pegalo acá.</li></ol>" +
+        '<div class="acct-row"><input id="gh-token" type="password" autocomplete="off" placeholder="ghp_..." aria-label="Token de GitHub"><button class="btn-ghost" data-act="gh-in"' + (ghBusy ? " disabled" : "") + ">" + (ghBusy ? "Conectando..." : "Conectar") + "</button></div>" +
+        '<p class="sync">El token queda solo en este navegador. La app lo usa únicamente para leer y escribir un gist privado con tu progreso.</p>';
+    }
+    if (ghErr) html += '<p class="err2" style="text-align:left">' + esc(ghErr) + "</p>";
+    html += '<p class="sync" id="syncnote">' + esc(syncMsg) + "</p>" +
+      '<div class="btns"><button class="btn-ghost sm" data-act="export">Descargar copia</button><button class="btn-ghost sm" data-act="import">Cargar copia</button>' +
+      '<input id="imp" type="file" accept="application/json,.json" hidden></div></section>';
+    return html;
+  }
+  function viewStats() {
+    var now = Date.now(), t = today(), i;
+    var L = todayLog(), tn = 0, tok = 0, days = 0;
+    Object.keys(S.log).forEach(function (k) { tn += S.log[k].n; tok += S.log[k].ok; if (S.log[k].n) days++; });
+    var dd = t, dstreak = 0;
+    if (!(S.log[dd] && S.log[dd].n)) dd--;
+    while (S.log[dd] && S.log[dd].n) { dstreak++; dd--; }
+    var hist = [], histOk = [], histLbl = [];
+    for (i = 13; i >= 0; i--) { var l = S.log[t - i] || { n: 0, ok: 0 }; hist.push(l.n); histOk.push(l.ok); histLbl.push(new Date(now - i * DAY).getDate()); }
+    var rows = MULTS.map(function (m) { return ["× " + m, S.by["x" + m]]; }).concat([["Decenas", S.by.dec]]);
+    var rowsHtml = rows.map(function (r) {
+      var b = r[1] || { n: 0, ok: 0 }, pct = b.n ? Math.round(b.ok / b.n * 100) : 0;
+      return '<div class="row"><span class="num">' + r[0] + '</span><div class="meter"><i style="width:' + pct + '%"></i></div><span class="st">' + (b.n ? pct + "% · " + b.ok + "/" + b.n : "sin datos") + "</span></div>";
+    }).join("");
+    return head() +
+      '<div class="stats"><div class="stat"><b>' + L.n + "</b><span>respondidas hoy" + (L.n ? ", " + Math.round(L.ok / L.n * 100) + "% bien" : "") + '</span></div>' +
+      '<div class="stat"><b>' + dstreak + "</b><span>" + (dstreak === 1 ? "día seguido" : "días seguidos") + '</span></div>' +
+      '<div class="stat"><b>' + S.best + "</b><span>mejor racha de aciertos</span></div>" +
+      '<div class="stat"><b>' + tok + " / " + tn + "</b><span>aciertos en total</span></div></div>" +
+      '<section class="panel"><h3>Aciertos por tipo</h3><div class="list">' + rowsHtml + "</div></section>" +
+      '<section class="panel"><h3>Respondidas en los últimos 14 días</h3>' + bars(hist, histOk, histLbl, 13) + '<p class="sync" style="margin:0">La parte verde son los aciertos.</p></section>' +
+      accountPanel() +
+      '<section class="panel"><h3>Ajustes</h3><div class="setrow"><span>Borrar todo el progreso</span>' +
+      (confirmReset ? '<span><button class="btn-danger" data-act="reset-yes">Sí, borrar</button> <button class="btn-ghost" data-act="reset-no">Cancelar</button></span>' : '<button class="btn-ghost" data-act="reset">Borrar</button>') + "</div></section>";
+  }
+
+  function render() {
+    var y = window.scrollY, keep = "";
+    var a0 = document.getElementById("ans"); if (a0) keep = a0.value;
+    app.innerHTML = tab === "study" ? viewStudy() : viewStats();
+    var a = document.getElementById("ans");
+    if (a) { a.value = keep; if (tab === "study") a.focus({ preventScroll: true }); }
+    if (tab !== "study") window.scrollTo(0, y);
+  }
+
+  /* ---------- Eventos ---------- */
+  app.addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-tab],[data-act]");
+    if (!t) return;
+    if (t.dataset.tab) { tab = t.dataset.tab; render(); window.scrollTo(0, 0); return; }
+    var a = t.dataset.act;
+    if (a === "check") submit((document.getElementById("ans") || {}).value || "");
+    else if (a === "next") nextQ();
+    else if (a === "mode") { S.cfg.mode = t.dataset.v; if (S.cfg.mode !== "mult") S.cfg.mul = 0; save(); nextQ(); }
+    else if (a === "mul") { S.cfg.mul = +t.dataset.v; save(); nextQ(); }
+    else if (a === "gh-in") connect((document.getElementById("gh-token") || {}).value);
+    else if (a === "gh-out") disconnect();
+    else if (a === "export") exportJson();
+    else if (a === "import") document.getElementById("imp").click();
+    else if (a === "reset") { confirmReset = true; render(); }
+    else if (a === "reset-no") { confirmReset = false; render(); }
+    else if (a === "reset-yes") { var cfg = S.cfg; S = fresh(); S.cfg = cfg; streak = 0; confirmReset = false; save(); nextQ(); }
+  });
+  app.addEventListener("keydown", function (ev) {
+    if (ev.target.id === "gh-token" && ev.key === "Enter") { ev.preventDefault(); connect(ev.target.value); }
+    else if (ev.target.id === "ans" && ev.key === "Enter") { ev.preventDefault(); submit(ev.target.value); }
+  });
+  app.addEventListener("input", function (ev) { if (ev.target.id === "ans" && formErr) { formErr = ""; var e = app.querySelector(".err2"); if (e) e.remove(); } });
+  app.addEventListener("change", function (ev) {
+    if (ev.target.id === "imp" && ev.target.files[0]) importJson(ev.target.files[0]);
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (tab !== "study" || !answered || ev.key !== "Enter") return;
+    var tag = ev.target && ev.target.tagName;
+    if (tag === "BUTTON" || tag === "INPUT") return;
+    ev.preventDefault(); nextQ();
+  });
+
+  render();
+  startupPull();
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && !answered) startupPull();
+  });
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+</body>
+</html>
