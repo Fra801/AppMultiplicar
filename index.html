@@ -335,7 +335,6 @@ hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
   function viewStudy() {
     if (!cur) cur = nueva(S.cfg.mode, S.cfg.mul);
     var html = head() + chips() + '<section class="card">' +
-      '<div class="meta"><span class="pill ' + (cur.kind === "dec" ? "n4" : "n2") + '">' + esc(cur.tipo) + "</span></div>" +
       '<h2 class="q">' + esc(cur.txt) + "</h2>";
     if (!answered) {
       html += '<div><input class="ans" id="ans" type="text" inputmode="numeric" autocomplete="off" placeholder="Tu respuesta" aria-label="Tu respuesta"></div>' +
