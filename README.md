@@ -1,11 +1,11 @@
 # Multiplicar
 
-Práctica de cálculo mental con números de dos cifras. Escribís el resultado, tocás **Comprobar** y la app te muestra el truco para hacerlo de cabeza.
+Práctica de cálculo mental con números de dos cifras. Escribís el resultado, tocás **Comprobar** y la app te dice si está bien (verde) o mal (rojo).
 
 ## Tipos de ejercicio
 
 - **Multiplicadores**: un número de dos cifras al azar por 5, 25, 11, 99, 15 o 21, en cualquier orden. Se puede fijar un solo multiplicador.
-- **Decenas iguales**: dos números con la misma decena y unidades que suman 10 (por ejemplo 34 × 36). Se multiplica la decena por la siguiente y se pegan las unidades multiplicadas.
+- **Decenas iguales**: dos números con la misma decena y unidades que suman 10 (por ejemplo 34 × 36).
 - **Mixto**: alterna entre los dos.
 
 ## Usarla como app

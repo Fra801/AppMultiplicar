@@ -13,7 +13,7 @@
 <title>Multiplicar</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: una columna de 720px. Arriba el encabezado con contadores, pestañas, y debajo la tarjeta con la cuenta, la respuesta y el truco. */
+/* Layout: una columna de 720px. Arriba el encabezado con contadores, pestañas, y debajo la tarjeta con la cuenta, la respuesta. */
 :root {
   --bg: #F3F4F8;
   --surface: #FFFFFF;
@@ -108,11 +108,10 @@ button { cursor: pointer; }
 input.ans { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; text-align: center; font-family: var(--font-mono); font-size: 26px; font-variant-numeric: tabular-nums; }
 input.ans::placeholder { color: var(--muted); font-size: 18px; font-family: var(--font-body); }
 .err2 { color: var(--again-fg); font-size: 14px; margin: 0; text-align: center; }
-.res { border-radius: 12px; padding: 12px 14px; font-weight: 600; text-align: center; font-size: 17px; }
-.res.ok { background: var(--good-bg); color: var(--good-fg); }
-.res.bad { background: var(--again-bg); color: var(--again-fg); }
+.res { border-radius: 12px; padding: 14px; font-weight: 700; text-align: center; font-size: 19px; color: #FFFFFF; }
+.res.ok { background: #00C853; box-shadow: 0 4px 14px rgba(0, 200, 83, .35); }
+.res.bad { background: #FF1744; box-shadow: 0 4px 14px rgba(255, 23, 68, .35); }
 .exp { margin: 0; overflow-wrap: anywhere; }
-.trick { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-family: var(--font-mono); font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
 hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
 
 .btn-main { width: 100%; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 10px; padding: 13px 16px; font-weight: 600; font-size: 16px; }
@@ -170,27 +169,17 @@ hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
   function dayNum(ts) { return Math.floor((ts - new Date(ts).getTimezoneOffset() * MIN) / DAY); }
   function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
   function pick(x) { return x[rnd(0, x.length - 1)]; }
-  function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
-  function truco(a, m) {
-    if (m === 5) return a + " × 10 = " + a * 10 + ", y la mitad: " + a * 5;
-    if (m === 25) return a + " × 100 = " + a * 100 + ", dividido 4: " + a * 25;
-    if (m === 11) return a + " × 10 + " + a + " = " + a * 10 + " + " + a + " = " + a * 11;
-    if (m === 99) return a + " × 100 = " + a * 100 + ", menos " + a + " = " + a * 99;
-    if (m === 15) return a + " × 10 = " + a * 10 + ", más su mitad (" + a * 5 + ") = " + a * 15;
-    return a + " × 20 = " + a * 20 + ", más " + a + " = " + a * 21;
-  }
   function nueva(mode, mulFilter) {
     var t = mode === "mix" ? pick(["mult", "dec"]) : mode;
     if (t === "mult") {
       var a = rnd(10, 99), m = mulFilter ? mulFilter : pick(MULTS);
       var flip = Math.random() < 0.5;
-      return { kind: "mult", key: "x" + m, txt: flip ? m + " × " + a : a + " × " + m, res: a * m, tipo: "Por " + m, tr: truco(a, m) };
+      return { kind: "mult", key: "x" + m, txt: flip ? m + " × " + a : a + " × " + m, res: a * m, tipo: "Por " + m };
     }
     var d = rnd(1, 9), u = rnd(1, 9), v = 10 - u;
     var p = 10 * d + u, q = 10 * d + v;
-    return { kind: "dec", key: "dec", txt: p + " × " + q, res: p * q, tipo: "Decenas iguales, unidades suman 10",
-      tr: d + " × " + (d + 1) + " = " + d * (d + 1) + " y " + u + " × " + v + " = " + pad(u * v) + ". Se pegan: " + d * (d + 1) + pad(u * v) };
+    return { kind: "dec", key: "dec", txt: p + " × " + q, res: p * q, tipo: "Decenas iguales, unidades suman 10" };
   }
 
   /* ---------- Estado y guardado ---------- */
@@ -354,8 +343,7 @@ hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
         '<button class="btn-main" data-act="check">Comprobar</button><p class="hint">Atajo: Enter</p>';
     } else {
       html += '<hr class="sep">' +
-        '<div class="res ' + (lastRes.ok ? "ok" : "bad") + '">' + (lastRes.ok ? "Correcto: " + esc(cur.txt) + " = " + cur.res : "Era " + cur.res + ". Tu respuesta: " + lastRes.given) + "</div>" +
-        '<div><p class="lbl2">Truco</p><div class="trick">' + esc(cur.tr) + "</div></div>" +
+        '<div class="res ' + (lastRes.ok ? "ok" : "bad") + '">' + (lastRes.ok ? "¡Correcto! " + esc(cur.txt) + " = " + cur.res : "Incorrecto. Era " + cur.res + " (pusiste " + lastRes.given + ")") + "</div>" +
         '<button class="btn-main" data-act="next">Siguiente</button><p class="hint">Atajo: Enter</p>';
     }
     return html + "</section>";
